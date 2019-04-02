@@ -1,151 +1,228 @@
 package com.hinet;
 
 import com.sun.xml.internal.ws.api.message.ExceptionHasMessage;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 import static java.time.MonthDay.now;
 
-public class DB {
-	public static boolean isWorkin;
-	private Connection connection;
-	private String content;
-	private int user_id;
+public class DB implements Initializable {
+    public static boolean isWorkin;
+    private Connection connection;
+    private String content;
+    private int user_id;
+    private ArrayList<Integer> data;
+    private int getUser_id;
+    private String getContent;
+    private String getuser_id;
+    private String getCreateat;
 
-	public DB(String content,int user_id) throws SQLException, ClassNotFoundException {
+    @FXML
+    TableView<DBData> data_tbl;
+    @FXML
+    TableColumn<DBData, String> tbl_id;
+    @FXML
+    TableColumn<DBData, String> tbl_content;
 
-		this.content=content;
-		this.user_id=user_id;
+    @FXML
+    TableColumn<DBData, String> tbl_date;
 
-		Class.forName("org.sqlite.JDBC");
-		String Path = System.getProperty("user.dir");
-		String url = "jdbc:sqlite:" + Path + "/issues_db.db";
-		// create a connection to the database .
-		connection = DriverManager.getConnection(url);
-		// Send  Date To DB
-		try {
-			insert(content,user_id);
-		} catch (Exception e) {
-//			e.printStackTrace();
-			System.out.println(e);
-		}
-	}
+    @FXML
+    TableColumn<DBData, String> tbl_user;
 
-	public DB() {
-	}
+    @FXML
+    DatePicker date_tf;
+    @FXML
+    TextField content_tf, user_tf;
 
-	private int insert(String content, int user_id) throws Exception {
 
-		System.out.println("============= To DB ==========");
-		int numRowsInserted = 0;
-		PreparedStatement ps = null;
-		try {
-			String sql = "INSERT INTO issue_data(data_content, user_id,created_at) VALUES('" + content + "','" + user_id + "','" + new Date() + "')";
-			System.out.println(sql);
-			ps = connection.prepareStatement(sql);
-			ps.executeUpdate();
-			ps.close();
-		} catch (SQLException e) {
-			throw new Exception("Can't insert Data to DB",e);
-		} finally {
-			close(ps);
-		}
-		return numRowsInserted;
-	}
+    private ObservableList<DBData> dbDataObservableList = FXCollections.observableArrayList();
 
-//	public ArrayList<String> getData() {
-//		System.out.println("=================== DB To API ================");
-//		Statement stmt = null;
-//		ResultSet rs = null;
-//		String sql = "SELECT * from datatb ";
-//		try {
-//			String Path = System.getProperty("user.dir");
-//			String url = "jdbc:sqlite:" + Path + "/whats.db";
-//			// create a connection to the database .
-//			connection = DriverManager.getConnection(url);
-//			stmt = connection.createStatement();
-//			rs = stmt.executeQuery(sql);
+    public int getGetUser_id() {
+        return getUser_id;
+    }
+
+    public void setGetUser_id(int getUser_id) {
+        this.getUser_id = getUser_id;
+    }
+
+    public String getGetContent() {
+        return getContent;
+    }
+
+    public void setGetContent(String getContent) {
+        this.getContent = getContent;
+    }
+
+    public String getGetuser_id() {
+        return getuser_id;
+    }
+
+    public void setGetuser_id(String getuser_id) {
+        this.getuser_id = getuser_id;
+    }
+
+    public String getGetCreateat() {
+        return getCreateat;
+    }
+
+    public void setGetCreateat(String getCreateat) {
+        this.getCreateat = getCreateat;
+    }
+
+    public DB(String content, int user_id) throws SQLException, ClassNotFoundException {
+        this.content = content;
+        this.user_id = user_id;
+        Class.forName("org.sqlite.JDBC");
+        String Path = System.getProperty("user.dir");
+        String url = "jdbc:sqlite:" + Path + "/issues_db.db";
+        // create a connection to the database .
+        connection = DriverManager.getConnection(url);
+        // Send  Date To DB
+//        try {
+//            insert(content, user_id);
+//        } catch (Exception e) {
+//            System.out.println(e);
+//        }
+    }
+
+    public DB() {
+    }
+
+    @FXML
+    private int insert() throws Exception {
+        dbDataObservableList.clear();
+        getData();
+        display();
+        System.out.println("============= To DB ==========");
+        int numRowsInserted = 0;
+        content=content_tf.getText();
+        LocalDate temp = date_tf.getValue();
+        user_id= Integer.parseInt(user_tf.getText());
+        PreparedStatement ps = null;
+        try {
+            String sql = "INSERT INTO issue_data(data_content, user_id,created_at) VALUES('" + content + "','" + user_id + "','" + temp + "')";
+            System.out.println(sql);
+            ps = connection.prepareStatement(sql);
+            ps.executeUpdate();
+            ps.close();
+        } catch (SQLException e) {
+            throw new Exception("Can't insert Data to DB", e);
+        } finally {
+            close(ps);
+        }
+        return numRowsInserted;
+    }
+
+    public void getData() {
+        System.out.println("=================== Out of DB ================");
+
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT * from issue_data ";
+        try {
+            String Path = System.getProperty("user.dir");
+            String url = "jdbc:sqlite:" + Path + "/issues_db.db";
+            // create a connection to the database .
+            connection = DriverManager.getConnection(url);
+            stmt = connection.createStatement();
+            rs = stmt.executeQuery(sql);
+
+            // loop through the result set
+            while (rs.next()) {
+//				System.out.println(rs.getInt("created_at"));
+                dbDataObservableList.add(new DBData(rs.getInt("id"), rs.getString("data_content"), rs.getString("user_id"), rs.getString("created_at")));
+//				System.out.println(dbData.getContent());
+//				dbDataObservableList.add()
+//				setGetUser_id(rs.getInt("id"));
+//				data.add(rs.getInt("id"));
+//				System.out.println(rs.getInt("id"));
+            }
+        } catch (SQLException e) {
+            e.getMessage();
+        } finally {
+            close(stmt);
+        }
+
+    }
+
+    public static void close(Statement statement) {
+        try {
+            if (statement != null) {
+                statement.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public ArrayList<Integer> getdata_arr() {
+        return data;
+    }
+
+    @FXML
+    private  void deleteRow() throws Exception {
+        System.out.println("=================== Delete Row ================");
+
+        Statement stmt = null;
+        ResultSet rs = null;
+        String sql = "SELECT * from issue_data ";
+        try {
+            String Path = System.getProperty("user.dir");
+            String url = "jdbc:sqlite:" + Path + "/issues_db.db";
+            // create a connection to the database .
+            DBData  dbData=data_tbl.getSelectionModel().getSelectedItem();
+            int id=dbData.getId();
+            connection = DriverManager.getConnection(url);
+            stmt = connection.createStatement();
+            String delSql = "delete from issue_data Where id ="+id+"";
+             stmt.executeUpdate(delSql);
+//            if (rs.next()){
+            dbDataObservableList.clear();
+            getData();
 //
-//			// loop through the result set
-//			while (rs.next()) {
-//				int DBFlag = rs.getInt(6);
-//				if (DBFlag == 1) {
-////                        data_to_send.add(rs.getString("phone"));
-////                        data_to_send.add(rs.getString("chat"));
-////                        data_to_send.add(rs.getString("chat_time"));
-////                        data_to_send.add(rs.getString("chat_type"));
-//					try {
-//						String urlParameters = "mobile=" + rs.getString("phone") + "&chat=" + rs.getString("chat") + "&chat_time=" + rs.getString("chat_time") + "&chat_type=" + rs.getString("chat_type") + "";
-//						byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
-//						int postDataLength = postData.length;
-//						String request = loadURL() + "/APP/postit";
-//						URL url1 = new URL(request);
-//						HttpURLConnection conn = (HttpURLConnection) url1.openConnection();
-//						System.out.println(request + urlParameters);
-//						conn.setDoOutput(true);
-//						conn.setInstanceFollowRedirects(false);
-//						conn.setRequestMethod("POST");
-//						conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-//						conn.setRequestProperty("charset", "utf-8");
-//						conn.setRequestProperty("Content-Length", Integer.toString(postDataLength));
-//						conn.setUseCaches(false);
-//						try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
-//							wr.write(postData);
-//						}
-//						System.out.println("Server Status: " + String.valueOf(conn.getResponseCode()));
-//					} catch (Exception w) {
-//						w.getMessage();
-//					}
-//				}
-//			}
-//			/**
-//			 *          change message flag to 0
-//			 *          to not send them again
-//			 */
-//			String updateflagquery = "UPDATE datatb SET flag=0  ";
-//			stmt.executeUpdate(updateflagquery);
-//		} catch (SQLException e) {
-//			e.getMessage();
-//		} finally {
-//			close(stmt);
-//		}
-//		return data_to_send;
-//	}
-	public static void close(Statement statement) {
-		try {
-			if (statement != null) {
-				statement.close();
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+//            }
+        }catch (SQLException w){
+            throw new Exception("Cant Delete row");
+        }
+    }
 
-//	private String loadURL() {
-//		InputStream input = getClass().getClassLoader().getResourceAsStream("APILinks.properties");
-//		Properties properties = new Properties();
-//		if (input != null) {
-//			try {
-//				properties.load(input);
-//				PostURL = properties.getProperty("apit_postit");
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		return PostURL;
-//	}
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
 
+//        try {
+//            insert("mahmoud", 1111);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
+    }
+
+    @FXML
+    private void display() {
+        dbDataObservableList.clear();
+        data_tbl.setItems(dbDataObservableList);
+        getData();
+        tbl_id.setCellValueFactory(new PropertyValueFactory<>("id"));
+        tbl_content.setCellValueFactory(new PropertyValueFactory<>("content"));
+        tbl_user.setCellValueFactory(new PropertyValueFactory<>("user_id"));
+        tbl_date.setCellValueFactory(new PropertyValueFactory<>("create_date"));
+
+        data_tbl.setItems(dbDataObservableList);
+    }
 }
 
 

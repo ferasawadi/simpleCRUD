@@ -1,5 +1,7 @@
 package com.hinet;
 
+import com.sun.xml.internal.ws.api.message.ExceptionHasMessage;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,8 +9,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Properties;
+
+import static java.time.MonthDay.now;
 
 public class DB {
 	public static boolean isWorkin;
@@ -27,25 +34,30 @@ public class DB {
 		// create a connection to the database .
 		connection = DriverManager.getConnection(url);
 		// Send  Date To DB
-		insert(content,user_id);
+		try {
+			insert(content,user_id);
+		} catch (Exception e) {
+//			e.printStackTrace();
+			System.out.println(e);
+		}
 	}
 
 	public DB() {
 	}
 
-	private int insert(String content, int user_id) {
+	private int insert(String content, int user_id) throws Exception {
 
 		System.out.println("============= To DB ==========");
 		int numRowsInserted = 0;
 		PreparedStatement ps = null;
 		try {
-			String sql = "INSERT issue_data(content, user_id) VALUES('" + content + "','" + user_id + " ')";
+			String sql = "INSERT INTO issue_data(data_content, user_id,created_at) VALUES('" + content + "','" + user_id + "','" + new Date() + "')";
 			System.out.println(sql);
 			ps = connection.prepareStatement(sql);
 			ps.executeUpdate();
 			ps.close();
 		} catch (SQLException e) {
-			System.out.println("data already Exist !");
+			throw new Exception("Can't insert Data to DB",e);
 		} finally {
 			close(ps);
 		}

@@ -1,6 +1,6 @@
 package com.hinet;
 
-import com.sun.xml.internal.ws.api.message.ExceptionHasMessage;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -8,15 +8,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+import javax.swing.*;
 import java.net.URL;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Properties;
 import java.util.ResourceBundle;
-
-import static java.time.MonthDay.now;
 
 public class DB implements Initializable {
 	public static boolean isWorkin;
@@ -60,21 +57,33 @@ public class DB implements Initializable {
 	private int insert() throws Exception {
 		dbDataObservableList.clear();
 		getData();
-		display();
 		System.out.println("============= To DB ==========");
 		int numRowsInserted = 0;
-		content = content_tf.getText();
-		LocalDate temp = date_tf.getValue();
-		user_id = Integer.parseInt(user_tf.getText());
+
 		PreparedStatement ps = null;
 		try {
+			content = content_tf.getText();
+			LocalDate temp = date_tf.getValue();
+			user_id = Integer.parseInt(user_tf.getText());
 			String sql = "INSERT INTO issue_data(data_content, user_id,created_at) VALUES('" + content + "','" + user_id + "','" + temp + "')";
 			System.out.println(sql);
 			ps = connection.prepareStatement(sql);
 			ps.executeUpdate();
 			ps.close();
-		} catch (SQLException e) {
-			throw new Exception("Can't insert Data to DB", e);
+			Alert alert = new Alert(Alert.AlertType.INFORMATION);
+			alert.setTitle("Success");
+			alert.setHeaderText("Success ,Every Thing is Set");
+			alert.setContentText("Congrats , Data has been Entered Successfully!");
+			alert.showAndWait();
+
+			display();
+		} catch (RuntimeException e) {
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setTitle("Error");
+			alert.setHeaderText("Error ,There is an error");
+			alert.setContentText("Enter Data at the TextFileds Before!");
+
+			alert.showAndWait();
 		} finally {
 			close(ps);
 		}
@@ -125,8 +134,19 @@ public class DB implements Initializable {
 			stmt.executeUpdate(delSql);
 			dbDataObservableList.clear();
 			getData();
-		} catch (SQLException w) {
-			throw new Exception("Cant Delete row");
+			Alert alert = new Alert(Alert.AlertType.INFORMATION);
+			alert.setTitle("Success");
+			alert.setHeaderText("Success ,Every Thing is Set");
+			alert.setContentText(" Data has been Deleted Successfully!");
+			alert.showAndWait();
+		} catch (RuntimeException w) {
+
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setTitle("Error");
+			alert.setHeaderText("Error ,There is an error");
+			alert.setContentText("choose Data to Delete First!");
+
+			alert.showAndWait();
 		}
 	}
 
@@ -149,29 +169,39 @@ public class DB implements Initializable {
 		getData();
 		display();
 
-		String temp_content = content_tf.getText();
-		String temp_user = user_tf.getText();
-		String temp_date = date_tf.getValue().toString();
 		Statement stmt = null;
 		ResultSet rs = null;
 
 		try {
-			String Path = System.getProperty("user.dir");
-			String url = "jdbc:sqlite:" + Path + "/issues_db.db";
+			try {
+				String temp_content = content_tf.getText();
+				String temp_user = user_tf.getText();
+				String temp_date = date_tf.getValue().toString();
 
-			// create a connection to the database .
-			connection = DriverManager.getConnection(url);
-			dbData=data_tbl.getSelectionModel().getSelectedItem();
-			int id =dbData.getId();
-			String tempsql = "UPDATE issue_data SET data_content = '" + temp_content + "',user_id = '" + temp_user + "',created_at = '" + temp_date + "' where id='"+id+"'";
+				String Path = System.getProperty("user.dir");
+				String url = "jdbc:sqlite:" + Path + "/issues_db.db";
 
-			stmt = connection.createStatement();
-			stmt.executeUpdate(tempsql);
-			System.out.println(tempsql);
+				// create a connection to the database .
+				connection = DriverManager.getConnection(url);
+				dbData = data_tbl.getSelectionModel().getSelectedItem();
+				System.out.println(dbData);
+				int id = dbData.getId();
+				String tempsql = "UPDATE issue_data SET data_content = '" + temp_content + "',user_id = '" + temp_user + "',created_at = '" + temp_date + "' where id='" + id + "'";
 
-		} catch (SQLException e) {
-			e.getMessage();
-		} finally {
+				stmt = connection.createStatement();
+				stmt.executeUpdate(tempsql);
+
+
+			} catch (NullPointerException  | SQLException e) {
+				e.printStackTrace();
+//				Alert alert = new Alert(Alert.AlertType.ERROR);
+//				alert.setTitle("Error");
+//				alert.setHeaderText("Error ,There is an error");
+//				alert.setContentText("Please Press Show button First!");
+//
+//				alert.showAndWait();
+			}
+		}finally {
 			close(stmt);
 		}
 	}

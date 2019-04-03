@@ -21,7 +21,6 @@ public class DBData {
     }
 
     public int getId() {
-        System.out.println(id);
         return id;
     }
 

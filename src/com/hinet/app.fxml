@@ -39,7 +39,7 @@
             <Separator layoutX="10.0" layoutY="103.0" prefWidth="200.0" />
             <DatePicker fx:id="date_tf" />
             <Button mnemonicParsing="false" onAction="#insert" prefHeight="38.0" prefWidth="152.0" text="Save" />
-            <Button layoutX="10.0" layoutY="61.0" mnemonicParsing="false" onAction="#update" prefHeight="36.0" prefWidth="153.0" text="Update" />
+            <Button layoutX="10.0" layoutY="61.0" mnemonicParsing="false" onAction="#dbUpdate" prefHeight="36.0" prefWidth="153.0" text="Update" />
             <Button layoutX="10.0" layoutY="86.0" mnemonicParsing="false" onAction="#display" prefHeight="41.0" prefWidth="151.0" text="Show" />
             <Button layoutX="10.0" layoutY="111.0" mnemonicParsing="false" onAction="#deleteRow" prefHeight="40.0" prefWidth="150.0" text="Delete" />
          </children>

@@ -163,48 +163,48 @@ public class DB implements Initializable {
 	}
 
 	@FXML
-	private void update() {
-		System.out.println("=================== UPDATE ================");
-		dbDataObservableList.clear();
-		getData();
-		display();
+	private void dbUpdate() {
+		System.out.println("db update");
+//		display();
 
 		Statement stmt = null;
 		ResultSet rs = null;
 
 		try {
-			try {
-				String temp_content = content_tf.getText();
-				String temp_user = user_tf.getText();
-				String temp_date = date_tf.getValue().toString();
+			String temp_content = content_tf.getText();
+			String temp_user = user_tf.getText();
+			String temp_date = date_tf.getValue().toString();
+			dbData = data_tbl.getSelectionModel().getSelectedItem();
+			int id = dbData.getId();
 
-				String Path = System.getProperty("user.dir");
-				String url = "jdbc:sqlite:" + Path + "/issues_db.db";
+			String tempsql = "UPDATE issue_data SET data_content = '" + temp_content + "',user_id = '" + temp_user + "',created_at = '" + temp_date + "' where id='" + id + "'";
+			String Path = System.getProperty("user.dir");
+			String url = "jdbc:sqlite:" + Path + "/issues_db.db";
+			// create a connection to the database .
+			connection = DriverManager.getConnection(url);
+			stmt = connection.createStatement();
+			stmt.executeUpdate(tempsql);
 
-				// create a connection to the database .
-				connection = DriverManager.getConnection(url);
-				dbData = data_tbl.getSelectionModel().getSelectedItem();
-				System.out.println(dbData);
-				int id = dbData.getId();
-				String tempsql = "UPDATE issue_data SET data_content = '" + temp_content + "',user_id = '" + temp_user + "',created_at = '" + temp_date + "' where id='" + id + "'";
+			Alert alert = new Alert(Alert.AlertType.INFORMATION);
+			alert.setTitle("Successful");
+			alert.setHeaderText("Success , Every Thing is SET");
+			alert.setContentText("Data Has been Updated Successfully");
 
-				stmt = connection.createStatement();
-				stmt.executeUpdate(tempsql);
+			alert.showAndWait();
 
+		} catch (RuntimeException | SQLException e) {
+			Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setTitle("Error");
+			alert.setHeaderText("Error ,There is an error");
+			alert.setContentText("choose Data to Delete First, Or Fill The Fields!");
 
-			} catch (NullPointerException  | SQLException e) {
-				e.printStackTrace();
-//				Alert alert = new Alert(Alert.AlertType.ERROR);
-//				alert.setTitle("Error");
-//				alert.setHeaderText("Error ,There is an error");
-//				alert.setContentText("Please Press Show button First!");
-//
-//				alert.showAndWait();
-			}
-		}finally {
+			alert.showAndWait();
+		} finally {
 			close(stmt);
+			display();
 		}
 	}
+
 
 	public static void close(Statement statement) {
 		try {
